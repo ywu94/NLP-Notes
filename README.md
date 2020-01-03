@@ -2,7 +2,9 @@
  
 Collections of classic machine learning papers and resources, python implementations attached for some algorithms.
 
-## I. Recommendation System
+---
+
+### I. Recommendation System
 
 1. [Effective Approaches to Attention-based Neural Machine Translation](https://github.com/YifanWu1994/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/1.%20Effective%20Approaches%20to%20Attention-based%20Neural%20Machine%20Translation/Effective%20Approaches%20to%20Attention-based%20Neural%20Machine%20Translation.pdf)
 
@@ -19,8 +21,10 @@ Collections of classic machine learning papers and resources, python implementat
 4. [Abstractive Text Summarization using Sequence-to-sequence RNNs and Beyond](https://github.com/YifanWu1994/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/4.%20Abstractive%20Text%20Summarization%20using%20Sequence-to-sequence%20RNNs%20and%20Beyond/Abstractive%20Text%20Summarization%20using%20Sequence-to-sequence%20RNNs%20and%20Beyond.pdf)
 
    Tags: `Seq2Seq`, `Hierarchical Attention`, `Text Summarization`
+   
+---
 
-## II. Natural Language Processing
+### II. Natural Language Processing
 
 1. [Deep & Cross Network for Ads Click Prediction](https://github.com/YifanWu1994/ML-Papers/blob/master/II.%20Recommendation%20System/1.%20Deep%20%26%20Cross%20Network%20for%20Ads%20Click%20Prediction/Deep%20%26%20Cross%20Network%20for%20Ads%20Click%20Prediction.pdf)
 
