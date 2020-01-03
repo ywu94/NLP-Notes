@@ -10,7 +10,7 @@ Collections of classic machine learning papers and resources, python implementat
 
    Tags: `Seq2Seq`, `Multiplicative Attention`, `Machine Translation`
 
-2. [Neural Machine Translation by Jointly Learning to Align and Translate]()
+2. [Neural Machine Translation by Jointly Learning to Align and Translate](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/2.%20Neural%20Machine%20Translation%20by%20Jointly%20Learning%20to%20Align%20and%20Translate/Neural%20Machine%20Translation%20by%20Jointly%20Learning%20to%20Align%20and%20Translate.pdf)
 
    Tags: `Seq2Seq`, `Additive Attention`, `Machine Translation`
 
