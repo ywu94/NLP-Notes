@@ -22,7 +22,7 @@ Collections of classic machine learning papers and resources, python implementat
 
    Tags: `Attention`, `Residual Connection`, `Deep Network`, `Machine Translation`
    
-   Implementations: [Tensorflow 2.0]
+   Implementations: [Tensorflow 2.0](...)
 
 4. [Abstractive Text Summarization using Sequence-to-sequence RNNs and Beyond](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/4.%20Abstractive%20Text%20Summarization%20using%20Sequence-to-sequence%20RNNs%20and%20Beyond/Abstractive%20Text%20Summarization%20using%20Sequence-to-sequence%20RNNs%20and%20Beyond.pdf)
 
