@@ -8,21 +8,21 @@ Collections of classic machine learning papers and resources, python implementat
 
 1. [Effective Approaches to Attention-based Neural Machine Translation](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/1.%20Effective%20Approaches%20to%20Attention-based%20Neural%20Machine%20Translation/Effective%20Approaches%20to%20Attention-based%20Neural%20Machine%20Translation.pdf)
 
-   Tags: `Seq2Seq`, `Multiplicative Attention`, `Machine Translation`
+   Tags: `Multiplicative Attention`, `Global/Local Attention`, `Machine Translation`
    
-   Implementations: TBD
+   Implementations: [Tensorflow 2.0](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/1.%20Effective%20Approaches%20to%20Attention-based%20Neural%20Machine%20Translation/mul-attn-tf2implementation.py)
 
 2. [Neural Machine Translation by Jointly Learning to Align and Translate](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/2.%20Neural%20Machine%20Translation%20by%20Jointly%20Learning%20to%20Align%20and%20Translate/Neural%20Machine%20Translation%20by%20Jointly%20Learning%20to%20Align%20and%20Translate.pdf)
 
-   Tags: `Seq2Seq`, `Additive Attention`, `Machine Translation`
+   Tags: `Additive Attention`, `Alignment`, `Machine Translation`
    
    Implementations: [Tensorflow 2.0](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/2.%20Neural%20Machine%20Translation%20by%20Jointly%20Learning%20to%20Align%20and%20Translate/add-attn-tf2implementation.py)
 
 3. [Google’s Neural Machine Translation System](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/3.%20Google%E2%80%99s%20Neural%20Machine%20Translation%20System/Google%E2%80%99s%20Neural%20Machine%20Translation%20System.pdf)
 
-   Tags: `Seq2Seq`, `Attention`, `Machine Translation`
+   Tags: `Attention`, `Residual Connection`, `Deep Network`, `Machine Translation`
    
-   Implementations: TBD
+   Implementations: [Tensorflow 2.0]
 
 4. [Abstractive Text Summarization using Sequence-to-sequence RNNs and Beyond](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/4.%20Abstractive%20Text%20Summarization%20using%20Sequence-to-sequence%20RNNs%20and%20Beyond/Abstractive%20Text%20Summarization%20using%20Sequence-to-sequence%20RNNs%20and%20Beyond.pdf)
 
@@ -30,7 +30,7 @@ Collections of classic machine learning papers and resources, python implementat
    
 5. [Attention Is All You Need](https://github.com/ywu94/ML-Papers/blob/master/I.%20Natural%20Language%20Processing/5.%20Attention%20Is%20All%20You%20Need/Attention%20Is%20All%20You%20Need.pdf)
 
-   Tags: `Trasnformer`, `Self-Attention`, `Seq2Seq`, `Machine Translation`
+   Tags: `Transformer`, `Self-Attention`, `Machine Translation`
    
 ---
 
