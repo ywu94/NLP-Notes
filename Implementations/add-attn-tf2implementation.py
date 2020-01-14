@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import *
 
-assert tf.__version__=="2.0.0", f"Expect TF-2.0.0 but get {tf.__version__}"
+assert tf.__version__>="2.0.0", f"Expect TF>=2.0.0 but get {tf.__version__}"
 
 class additive_attention_model(tf.keras.Model):
 	"""A Tensorflow 2.0 implementation of encoder-decoder attention model as illustrated in 
@@ -19,6 +19,10 @@ class additive_attention_model(tf.keras.Model):
 		dec_dropout: fraction of the decoder units to drop
 		ffnn_dropout: fraction of the ffnn units to drop
 		name: name of the model
+
+	# To be improved:
+
+		Enable masking for faster computation.
 
 	# Paper:
 

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import *
 
-assert tf.__version__=="2.0.0", f"Expect TF-2.0.0 but get {tf.__version__}"
+assert tf.__version__>="2.0.0", f"Expect TF>=2.0.0 but get {tf.__version__}"
 
 class google_neural_machine_translation_model(tf.keras.Model):
 	"""A Tensorflow 2.0 implementation of Google Neural Machine Translation model (GNMT) as illustrated in 
@@ -23,6 +23,10 @@ class google_neural_machine_translation_model(tf.keras.Model):
 	# Paper:
 
 		https://arxiv.org/pdf/1609.08144.pdf%20(7.pdf
+
+	# To be improved:
+
+		Enable masking for faster computation.
 
 	# Examples
 

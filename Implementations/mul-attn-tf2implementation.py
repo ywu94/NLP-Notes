@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import *
 
-assert tf.__version__=="2.0.0", f"Expect TF-2.0.0 but get {tf.__version__}"
+assert tf.__version__>="2.0.0", f"Expect TF>=2.0.0 but get {tf.__version__}"
 
 class multiplicative_attention_model(tf.keras.Model):
 	"""
@@ -27,6 +27,10 @@ class multiplicative_attention_model(tf.keras.Model):
 	# Paper:
 
 		https://www-nlp.stanford.edu/pubs/emnlp15_attn.pdf
+
+	# To be improved:
+
+		Enable masking for faster computation.
 
 	# Examples
 
