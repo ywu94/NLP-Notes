@@ -19,8 +19,9 @@ class multiplicative_attention_model(tf.keras.Model):
 		input_embed_dim: word embedding dimension for input
 		hidden_state_dim: hidden state dimension for encoder and decoder LSTM
 		local_attn_window: the context vector will be extracted from window [current_position ± local_attn_window]
-		enc_lstm_dropout: fraction of the encoder lstm units to drop
-		dec_lstm_dropout: fraction of the decoder lstm units to drop
+		enc_dropout: fraction of the encoder units to drop
+		dec_dropout: fraction of the decoder units to drop
+		ffnn_dropout: fraction of the ffnn units to drop
 		name: name of the model
 
 	# Paper:
@@ -53,7 +54,7 @@ class multiplicative_attention_model(tf.keras.Model):
 		model.summary()
 	```
 	"""
-	def __init__(self, attn_mode, input_shape, input_vocab_size, output_vocab_size, name="Multiplicative-Attention", input_embed_dim=200, hidden_state_dim=200, local_attn_window=None, enc_lstm_dropout=0.2, dec_lstm_dropout=0.2, **kwargs):
+	def __init__(self, attn_mode, input_shape, input_vocab_size, output_vocab_size, name="Multiplicative-Attention", input_embed_dim=200, hidden_state_dim=200, local_attn_window=None, enc_dropout=0.2, dec_dropout=0.2, ffnn_dropout=0.2, **kwargs):
 		super(multiplicative_attention_model, self).__init__(name=name, **kwargs)
 
 		# Expect attention model to be either global or local
@@ -65,20 +66,24 @@ class multiplicative_attention_model(tf.keras.Model):
 		assert len(input_shape) == 2, "Expect 2-dim tuple for input_shape, get {len(input_shape)}-dim instead"
 		_, self._n_step = input_shape
 
+		# Expect dropout to be between 0 and 0.3
+		assert enc_dropout >= 0 and enc_dropout <= 0.3, f"Expect enc_dropout to between 0 and 0.3, get {enc_dropout} instead"
+		self.enc_dropout = enc_dropout
+		assert dec_dropout >= 0 and dec_dropout <= 0.3, f"Expect dec_dropout to between 0 and 0.3, get {dec_dropout} instead"
+		self.dec_dropout = dec_dropout
+		assert ffnn_dropout >= 0 and ffnn_dropout <= 0.3, f"Expect ffnn_dropout to between 0 and 0.3, get {ffnn_dropout} instead"
+		self.ffnn_dropout = ffnn_dropout
+
 		# Embedding layer for input
 		self._embedding_layer = Embedding(input_dim=input_vocab_size+1, output_dim=input_embed_dim, input_length=self._n_step)
 
 		# LSTM encoder
-		self._lstm_encoder_layer_1 = LSTM(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, return_sequences=True, return_state=True)
-		self._encoder_layer_1_dropout_layer = Dropout(enc_lstm_dropout)
-		self._lstm_encoder_layer_2 = LSTM(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, return_sequences=True, return_state=True)
-		self._encoder_layer_2_dropout_layer = Dropout(enc_lstm_dropout)
+		self._lstm_encoder_layer_1 = LSTM(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, return_sequences=True, return_state=True, dropout=enc_dropout)
+		self._lstm_encoder_layer_2 = LSTM(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, return_sequences=True, return_state=True, dropout=enc_dropout)
 
 		# LSTM decoder
-		self._lstm_decoder_cell_1 = LSTMCell(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True)
-		self._decoder_cell_1_dropout_layer = Dropout(dec_lstm_dropout)
-		self._lstm_decoder_cell_2 = LSTMCell(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True)
-		self._decoder_dropout_layer = Dropout(dec_lstm_dropout)
+		self._lstm_decoder_cell_1 = LSTMCell(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, dropout=dec_dropout)
+		self._lstm_decoder_cell_2 = LSTMCell(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, dropout=dec_dropout)
 		self._decoder_state_array = tf.TensorArray(dtype=tf.float32, size=self._n_step, clear_after_read=True)
 
 		# Attention utility
@@ -102,9 +107,7 @@ class multiplicative_attention_model(tf.keras.Model):
 
 		# Encoder
 		encoder_1_sequence, encoder_1_hidden_state, encoder_1_cell_state = self._lstm_encoder_layer_1(inputs=inputs_embed, training=training)
-		encoder_1_sequence = self._encoder_layer_1_dropout_layer(encoder_1_sequence, training=training)
 		encoder_2_sequence, encoder_2_hidden_state, encoder_2_cell_state = self._lstm_encoder_layer_2(inputs=encoder_1_sequence, initial_state=[encoder_1_hidden_state, encoder_1_cell_state], training=training)
-		encoder_2_sequence = self._encoder_layer_2_dropout_layer(encoder_2_sequence, training=training)
 		decoder_1_input = tf.transpose(encoder_2_sequence, [1, 0, 2])
 		decoder_1_states = [encoder_1_hidden_state, encoder_1_cell_state]
 		decoder_2_states = [encoder_2_hidden_state, encoder_2_cell_state]
@@ -112,7 +115,6 @@ class multiplicative_attention_model(tf.keras.Model):
 		# Decoder
 		for step in range(self._n_step):
 			decoder_1_hidden_state, decoder_1_states = self._lstm_decoder_cell_1(inputs=decoder_1_input[step],states=decoder_1_states, training=training)
-			decoder_1_hidden_state = self._decoder_cell_1_dropout_layer(decoder_1_hidden_state, training=training)
 			decoder_2_hidden_state, decoder_2_states = self._lstm_decoder_cell_2(inputs=decoder_1_hidden_state, states=decoder_2_states, training=training)
 			if self.attn_mode == "global":
 				attention_score = tf.nn.softmax(tf.einsum("ijk,ik->ij", encoder_2_sequence, decoder_2_hidden_state))
@@ -124,10 +126,15 @@ class multiplicative_attention_model(tf.keras.Model):
 				context_vector = tf.einsum("ijk,ij->ik", encoder_2_sequence_part, attention_score)
 			output_vector = self._concat_layer([decoder_2_hidden_state, context_vector])
 			self._decoder_state_array = self._decoder_state_array.write(step,output_vector)
+
+		# Reset decoder dropout mask
+		self._lstm_decoder_cell_1.reset_dropout_mask()	
+		self._lstm_decoder_cell_2.reset_dropout_mask()	
+
 		decoder_sequence = tf.transpose(self._decoder_state_array.stack(), [1, 0, 2])
-		decoder_sequence = self._decoder_dropout_layer(decoder_sequence, training=training)
 
 		# Softmax outputs
+		if training: decoder_sequence = tf.nn.dropout(decoder_sequence, self.ffnn_dropout)
 		outputs = tf.nn.softmax(self._ffnn_decoder_sequence_layer(decoder_sequence))
 		return outputs
 

@@ -15,8 +15,9 @@ class additive_attention_model(tf.keras.Model):
 		input_embed_dim: word embedding dimension for input
 		hidden_state_dim: hidden state dimension for encoder and decoder GRU
 		alignment_dim: alignment score's internal dimension
-		enc_gru_dropout: fraction of the encoder gru units to drop
-		dec_gru_dropout: fraction of the decoder gru units to drop
+		enc_dropout: fraction of the encoder units to drop
+		dec_dropout: fraction of the decoder units to drop
+		ffnn_dropout: fraction of the ffnn units to drop
 		name: name of the model
 
 	# Paper:
@@ -48,7 +49,7 @@ class additive_attention_model(tf.keras.Model):
 		model.summary()
 	```
 	"""
-	def __init__(self, input_shape, input_vocab_size, output_vocab_size, name="Additive-Attention", input_embed_dim=200, hidden_state_dim=200, alignment_dim=40, enc_gru_dropout=0.2, dec_gru_dropout=0.2, **kwargs):
+	def __init__(self, input_shape, input_vocab_size, output_vocab_size, name="Additive-Attention", input_embed_dim=200, hidden_state_dim=200, alignment_dim=40, enc_dropout=0.2, dec_dropout=0.2, ffnn_dropout=0.2, **kwargs):
 		super(additive_attention_model, self).__init__(name=name, **kwargs)
 
 		# Expect input shape to be two-dimensional
@@ -56,12 +57,19 @@ class additive_attention_model(tf.keras.Model):
 		assert len(input_shape) == 2, "Expect 2-dim tuple for input_shape, get {len(input_shape)}-dim instead"
 		_, self._n_step = input_shape
 
+		# Expect dropout to be between 0 and 0.3
+		assert enc_dropout >= 0 and enc_dropout <= 0.3, f"Expect enc_dropout to between 0 and 0.3, get {enc_dropout} instead"
+		self.enc_dropout = enc_dropout
+		assert dec_dropout >= 0 and dec_dropout <= 0.3, f"Expect dec_dropout to between 0 and 0.3, get {dec_dropout} instead"
+		self.dec_dropout = dec_dropout
+		assert ffnn_dropout >= 0 and ffnn_dropout <= 0.3, f"Expect ffnn_dropout to between 0 and 0.3, get {ffnn_dropout} instead"
+		self.ffnn_dropout = ffnn_dropout
+
 		# Embedding layer for input
 		self._embedding_layer = Embedding(input_dim=input_vocab_size+1, output_dim=input_embed_dim, input_length=self._n_step)
 
 		# Bidirectional GRU encoder
-		self._bi_gru_encoder_layer = Bidirectional(GRU(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, return_sequences=True, return_state=True), merge_mode="concat")
-		self._encoder_dropout_layer = Dropout(enc_gru_dropout)
+		self._bi_gru_encoder_layer = Bidirectional(GRU(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, return_sequences=True, return_state=True, dropout=enc_dropout), merge_mode="concat")
 
 		# Weights and utility layers for calculating alignment score
 		self._W_a = self.add_weight(name="W_a", shape=(alignment_dim,hidden_state_dim), dtype=tf.float32)
@@ -72,8 +80,7 @@ class additive_attention_model(tf.keras.Model):
 		self._concat_layer = Concatenate()
 
 		# GRU decoder
-		self._decoder_cell = GRUCell(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True)
-		self._decoder_dropout_layer = Dropout(dec_gru_dropout)
+		self._decoder_cell = GRUCell(units=hidden_state_dim, activation="tanh", recurrent_activation="sigmoid", use_bias=True, dropout=dec_dropout)
 		self._decoder_state_array = tf.TensorArray(dtype=tf.float32, size=self._n_step, clear_after_read=True)
 		self._ffnn_decoder_sequence_layer = TimeDistributed(Dense(output_vocab_size+1))
 	
@@ -84,7 +91,6 @@ class additive_attention_model(tf.keras.Model):
 
 		# Encoder
 		encoder_sequence, forward_state, backward_state = self._bi_gru_encoder_layer(inputs_embed, training=training)
-		encoder_sequence = self._encoder_dropout_layer(encoder_sequence, training=training)
 		decoder_hidden_state = backward_state
 		encoder_sequence_transpose = tf.transpose(encoder_sequence, [1, 0, 2])
 
@@ -99,8 +105,11 @@ class additive_attention_model(tf.keras.Model):
 			decoder_hidden_state, _ = self._decoder_cell(inputs=decoder_input, states=[decoder_hidden_state], training=training)
 			self._decoder_state_array = self._decoder_state_array.write(step, decoder_hidden_state)
 		decoder_sequence = tf.transpose(self._decoder_state_array.stack(), [1, 0, 2])
-		decoder_sequence = self._decoder_dropout_layer(decoder_sequence, training=training)
+
+		# Reset decoder dropout mask
+		self._decoder_cell.reset_dropout_mask()
 
 		# Softmax outputs
+		if training: decoder_sequence = tf.nn.dropout(decoder_sequence, self.ffnn_dropout)
 		outputs = tf.nn.softmax(self._ffnn_decoder_sequence_layer(decoder_sequence))
 		return outputs
