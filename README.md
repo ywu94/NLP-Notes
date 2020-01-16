@@ -15,12 +15,13 @@
 ### Industrial Application
 
 >**Google Neural Machine Translation System**
->>**Concept applied**: `Additive/concat attention`, `Residual connection`, `Vanilla RNN Dropout` <br/>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Industry]Google%E2%80%99s-Neural-Machine-Translation-System.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/gnmt-tf2implementation.py)
+>>**Concept applied**: `Additive/concat attention`, `Residual connection`, `Vanilla dropout` <br/>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Industry]Google%E2%80%99s-Neural-Machine-Translation-System.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/gnmt-tf2implementation.py)
 
 >**BERT: Bidirectional Encoder Representations from Transformers**
 >>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BIndustry%5DBERT-Pre-training-of-Deep%20Bidirectional-Transformers-for-Language-Understanding.pdf)
    
-### RNN Dropout
+### Modeling Tricks
 
-> **Resources**: [[Methodology Overview]](https://medium.com/@bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b),&nbsp; [[Vanilla Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Neural-Network-Regularization.pdf),&nbsp; [[Variational Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DA-Theoretically-Grounded-Application-of-Dropout-in-Recurrent-Neural-Networks.pdf),&nbsp; [[Recurrent Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Dropout-without-Memory-Loss.pdf)<br/>**Experience**: set dropout ratio between `0.1` and `0.3`
+>**Recurrent Neural Network Dropout**
+>>**Resources**: [[Methodology Overview]](https://medium.com/@bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b),&nbsp; [[Vanilla Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Neural-Network-Regularization.pdf),&nbsp; [[Variational Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DA-Theoretically-Grounded-Application-of-Dropout-in-Recurrent-Neural-Networks.pdf),&nbsp; [[Recurrent Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Dropout-without-Memory-Loss.pdf)<br/>**Experience**: set dropout ratio between `0.1` and `0.3`
 
