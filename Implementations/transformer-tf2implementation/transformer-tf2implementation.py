@@ -3,8 +3,6 @@ from tensorflow.keras.layers import *
 
 assert tf.__version__>="2.0.0", f"Expect TF>=2.0.0 but get {tf.__version__}"
 
-from .tf2_util_layer import PositionalEmbedding, MultiHeadAttention, PointWiseFeedForwardNetwork
-from .tf2_util_layer import TransformerEncoderLayer, TransformerDecoderLayer
 from .tf2_util_layer import TransformerEncoder, TransformerDecoder
 
 class transformer_model(tf.keras.Model):
