@@ -9,7 +9,7 @@
 >>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Effective-Approaches-to-Attention-based-Neural-Machine-Translation.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/mul-attn-tf2implementation.py)
 
 >**Multi-head Self Attention / Transformer**
->>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Attention-Is-All-You-Need.pdf),&nbsp; [[Illustrative Intro]](http://jalammar.github.io/illustrated-transformer/),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/transformer-tf2implementation.py),&nbsp;
+>>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Attention-Is-All-You-Need.pdf),&nbsp; [[Illustrative Intro]](http://jalammar.github.io/illustrated-transformer/),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/tree/master/Implementations/transformer-tf2implementation),&nbsp;
 [[Official TF2 Implementation]](https://www.tensorflow.org/tutorials/text/transformer)
  
 ### Industrial Application
