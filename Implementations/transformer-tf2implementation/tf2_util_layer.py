@@ -3,6 +3,7 @@ from tensorflow.keras.layers import *
 
 assert tf.__version__>="2.0.0", f"Expect TF>=2.0.0 but get {tf.__version__}"
 
+
 class PositionalSinEmbedding(tf.keras.layers.Layer):
 	"""
 	Positional Sinusoidal Embedding layer  as described in "Attention is All You Need".
@@ -54,7 +55,9 @@ class PositionalSinEmbedding(tf.keras.layers.Layer):
 		"""
 		if self._mask_zero: 
 			bool_mask = self._embedding_layer.compute_mask(inputs, mask=mask)
-			return tf.where(bool_mask, tf.zeros(shape=tf.shape(bool_mask)), tf.ones(shape=tf.shape(bool_mask)))
+			bool_mask = tf.where(bool_mask, tf.zeros(shape=tf.shape(bool_mask)), tf.ones(shape=tf.shape(bool_mask)))
+			bool_mask = tf.expand_dims(bool_mask, 1)
+			return bool_mask
 		return None
 
 	def get_config(self):
@@ -104,7 +107,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 		self._Wo = Dense(self._d_model)
 
 	@tf.function
-	def call(self, Q, K, V, training=None, forward_mask=None, padding_mask=None):
+	def call(self, Q, K, V, training=None, mask=None):
 		"""
 		Input:
 		| Q: Tensor of shape (batch_size, n_query, _)
@@ -119,36 +122,11 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 		K_list = [Wk(K) for Wk in self._Wk_list] # list of (batch_size, n_key, d_k)
 		V_list = [Wv(V) for Wv in self._Wv_list] # list of (batch_size, n_key, d_v)
 
-		forward_mask = self.get_forward_mask(tf.shape(Q)[-2], tf.shape(K)[-2]) if forward_mask is not None else None # (1, n_query, n_key)
-		padding_mask = self.get_padding_mask(padding_mask) if padding_mask is not None else None # (batch_size, 1, n_key)
-
-		if forward_mask is not None:
-			attn_list = [self.get_scaled_dot_product_attention(q, k, v, mask=forward_mask) for q, k, v in zip(Q_list, K_list, V_list)] # list of (batch_size, n_query, d_v)
-		elif padding_mask is not None:
-			attn_list = [self.get_scaled_dot_product_attention(q, k, v, mask=padding_mask) for q, k, v in zip(Q_list, K_list, V_list)] # list of (batch_size, n_query, d_v)
-		else:
-			attn_list = [self.get_scaled_dot_product_attention(q, k, v, mask=None) for q, k, v in zip(Q_list, K_list, V_list)] # list of (batch_size, n_query, d_v)
+		attn_list = [self.get_scaled_dot_product_attention(q, k, v, mask=mask) for q, k, v in zip(Q_list, K_list, V_list)] # list of (batch_size, n_query, d_v)
 		concated_attn = self._concat_layer(attn_list) # (batch_size, n_query, n_head * d_v)
 		multihead_attn = self._Wo(concated_attn) # (batch_size, n_query, d_model)
 
 		return multihead_attn
-
-	def get_padding_mask(self, padding_mask):
-		"""
-		Reshape padding mask from (batch_size, n_key) to (batch_size, 1, n_key)
-		"""
-		return tf.reshape(padding_mask, (tf.shape(padding_mask)[0], 1, tf.shape(padding_mask)[1]))
-
-	def get_forward_mask(self, dim_0, dim_1):
-		"""
-		Intution:
-		| Mask future token of current sequences
-		Inplementation:
-		| Use a matrix with only upper triangular part being 1
-		Output:
-		| Tensor of shape (1, dim_0, dim_1)
-		"""
-		return tf.reshape(1 - tf.linalg.band_part(tf.ones((dim_0, dim_1)), -1, 0), (1, dim_0, dim_1))
 
 	def get_scaled_dot_product_attention(self, Q, K, V, mask=None):
 		"""
@@ -252,8 +230,8 @@ class TransformerEncoderLayer(tf.keras.layers.Layer):
 		self._dropout_layer_2 = Dropout(dropout_rate)
 
 	@tf.function
-	def call(self, inputs, training=None, forward_mask=None, padding_mask=None):
-		mh_attn = self._multi_head_attn_layer(inputs, inputs, inputs, forward_mask=forward_mask, padding_mask=padding_mask)
+	def call(self, inputs, training=None, mask=None):
+		mh_attn = self._multi_head_attn_layer(inputs, inputs, inputs, mask=mask)
 		mh_attn = self._dropout_layer_1(mh_attn, training=training)
 		ffnn_input = self._layer_norm_1(mh_attn+inputs)
 
@@ -319,7 +297,7 @@ class TransformerEncoder(tf.keras.layers.Layer):
 		outputs = self._dropout_layer(inputs_pos_embed, training=training)
 
 		for i in range(self._n_layer):
-			outputs = self._enc_layer_list[i](outputs, training=training, padding_mask=inputs_padding_mask)
+			outputs = self._enc_layer_list[i](outputs, training=training, mask=inputs_padding_mask)
 
 		return outputs
 
@@ -369,12 +347,12 @@ class TransformerDecoderLayer(tf.keras.layers.Layer):
 		self._dropout_layer_3 = Dropout(dropout_rate)
 		self._point_wise_feed_forward_network_layer = PointWiseFeedForwardNetwork(d_model, d_ff)
 
-	def call(self, inputs, enc_inputs, training=None, forward_mask=True, padding_mask=None):
-		mh_attn_1 = self._multi_head_attn_layer_1(inputs, inputs, inputs, forward_mask=forward_mask)
+	def call(self, inputs, enc_inputs, training=None, combined_mask=None, padding_mask=None):
+		mh_attn_1 = self._multi_head_attn_layer_1(inputs, inputs, inputs, mask=combined_mask)
 		mh_attn_1 = self._dropout_layer_1(mh_attn_1, training=training)
 		inputs_1 = self._layer_norm_1(mh_attn_1 + inputs)
 
-		mh_attn_2 = self._multi_head_attn_layer_2(enc_inputs, enc_inputs, inputs_1, padding_mask=padding_mask)
+		mh_attn_2 = self._multi_head_attn_layer_2(enc_inputs, enc_inputs, inputs_1, mask=padding_mask)
 		mh_attn_2 = self._dropout_layer_2(mh_attn_2, training=training)
 		inputs_2 = self._layer_norm_2(mh_attn_2 + inputs_1)
 
@@ -437,13 +415,26 @@ class TransformerDecoder(tf.keras.layers.Layer):
 		inputs_embed *= tf.math.sqrt(tf.cast(self._d_model, tf.float32))
 		inputs_pos_embed = inputs_embed + inputs_positional_encoding
 		inputs_padding_mask = self._positional_embedding_layer.compute_padding_mask(inputs)
+		inputs_forward_mask = self.get_forward_mask(tf.shape(inputs)[-1],tf.shape(inputs)[-1])
+		inputs_combined_mask = tf.maximum(inputs_padding_mask, inputs_forward_mask)
 
 		outputs = self._dropout_layer(inputs_pos_embed, training=training)
 
 		for i in range(self._n_layer):
-			outputs = self._dec_layer_list[i](outputs, enc_inputs, training=training, padding_mask=inputs_padding_mask)
+			outputs = self._dec_layer_list[i](outputs, enc_inputs, training=training, combined_mask=inputs_combined_mask, padding_mask=inputs_padding_mask)
 
 		return outputs
+
+	def get_forward_mask(self, dim_0, dim_1):
+		"""
+		Intution:
+		| Mask future token of current sequences
+		Inplementation:
+		| Use a matrix with only upper triangular part being 1
+		Output:
+		| Tensor of shape (1, dim_0, dim_1)
+		"""
+		return tf.expand_dims(1 - tf.linalg.band_part(tf.ones((dim_0, dim_1)), -1, 0), 0)
 
 	def get_config(self):
 		"""
