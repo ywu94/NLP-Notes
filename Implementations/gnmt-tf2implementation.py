@@ -26,7 +26,9 @@ class google_neural_machine_translation_model(tf.keras.Model):
 
 	# To be improved:
 
-		Enable masking for faster computation.
+		1. Enable masking.
+
+		2. Original paper uses vanilla dropout.
 
 	# Examples
 
