@@ -22,6 +22,9 @@
    
 ### Modeling Tricks
 
+>**Recurrent Neural Network Normalization**
+>>**Resources**: [[Methodology Overview]](https://mlexplained.com/2018/11/30/an-overview-of-normalization-methods-in-deep-learning/),&nbsp; [[Layer Normalization]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Training%5DLayer-Normalization.pdf)<br/>**Experience**: use `BatchNormalization` or `LayerNormalization` after each RNN layer
+
 >**Recurrent Neural Network Dropout**
->>**Resources**: [[Methodology Overview]](https://medium.com/@bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b),&nbsp; [[Vanilla Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Neural-Network-Regularization.pdf),&nbsp; [[Variational Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DA-Theoretically-Grounded-Application-of-Dropout-in-Recurrent-Neural-Networks.pdf),&nbsp; [[Recurrent Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Dropout-without-Memory-Loss.pdf)<br/>**Experience**: set dropout ratio between `0.1` and `0.3`
+>>**Resources**: [[Methodology Overview]](https://medium.com/@bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b),&nbsp; [[Vanilla Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Neural-Network-Regularization.pdf),&nbsp; [[Variational Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DA-Theoretically-Grounded-Application-of-Dropout-in-Recurrent-Neural-Networks.pdf),&nbsp; [[Recurrent Dropout]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Dropout%5DRecurrent-Dropout-without-Memory-Loss.pdf)<br/>**Experience**: set dropout ratio between `0.1` and `0.3`, begin with `vanilla dropout`
 
