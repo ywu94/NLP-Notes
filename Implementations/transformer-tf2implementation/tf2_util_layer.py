@@ -11,7 +11,6 @@ class PositionalSinEmbedding(tf.keras.layers.Layer):
 	| Parameters:
 	| | input_dim: parameter for embedding layer
 	| | output_dim: parameter for embedding layer
-	| | mask_zero: parameter for embedding layer
 	|
 	| Inputs: two dimensional tensor to be embedded
 	|
@@ -19,15 +18,14 @@ class PositionalSinEmbedding(tf.keras.layers.Layer):
 	| | inputs_embed: tensor of shape (batch_size, n_step, output_dim)
 	| | inputs_positional_encoding: tensor of shape (n_step, output_dim)
 	"""
-	def __init__(self, input_dim, output_dim, mask_zero=True, **kwargs):
+	def __init__(self, input_dim, output_dim, **kwargs):
 		super(PositionalSinEmbedding, self).__init__(**kwargs)
 		self._input_dim = input_dim
 		self._output_dim = output_dim
-		self._mask_zero = mask_zero
-		self._embedding_layer = Embedding(input_dim=input_dim, output_dim=output_dim, mask_zero=mask_zero)
+		self._embedding_layer = Embedding(input_dim=input_dim, output_dim=output_dim)
 
 	@tf.function
-	def call(self, inputs, training=False, mask=None):
+	def call(self, inputs, training=None):
 		inputs_embed = self._embedding_layer(inputs)
 		inputs_positional_encoding = self.get_positional_encoding(tf.shape(inputs_embed)[-2], tf.shape(inputs_embed)[-1])
 		return inputs_embed, inputs_positional_encoding
@@ -49,23 +47,23 @@ class PositionalSinEmbedding(tf.keras.layers.Layer):
 		positional_encoding = tf.where(tf.cast(tf.range(n_embed)%2.0, tf.bool), tf.math.cos(positional_encoding), tf.math.sin(positional_encoding))
 		return positional_encoding
 
-	def compute_padding_mask(self, inputs, mask=None):
-		"""
-		Compute mask
-		"""
-		if self._mask_zero: 
-			bool_mask = self._embedding_layer.compute_mask(inputs, mask=mask)
-			bool_mask = tf.where(bool_mask, tf.zeros(shape=tf.shape(bool_mask)), tf.ones(shape=tf.shape(bool_mask)))
-			bool_mask = tf.expand_dims(bool_mask, 1)
-			return bool_mask
-		return None
+	# def compute_padding_mask(self, inputs, mask=None):
+	# 	"""
+	# 	Compute mask
+	# 	"""
+	# 	if self._mask_zero: 
+	# 		bool_mask = self._embedding_layer.compute_mask(inputs, mask=mask)
+	# 		bool_mask = tf.where(bool_mask, tf.zeros(shape=tf.shape(bool_mask)), tf.ones(shape=tf.shape(bool_mask)))
+	# 		bool_mask = tf.expand_dims(bool_mask, 1)
+	# 		return bool_mask
+	# 	return None
 
 	def get_config(self):
 		"""
 		Get configuration for current layer
 		"""
 		config = super(PositionalSinEmbedding, self).get_config()
-		cur_config = {"input_dim":self._input_dim, "output_dim":self._output_dim, "mask_zero":self._mask_zero}
+		cur_config = {"input_dim":self._input_dim, "output_dim":self._output_dim}
 		config.update(cur_config)
 		return config
 
@@ -113,8 +111,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 		| Q: Tensor of shape (batch_size, n_query, _)
 		| K: Tensor of shape (batch_size, n_key, _)
 		| V: Tensor of shape (batch_size, n_key, _)
-		| forward_mask: whether to use forward mask
-		| padding_mask: Tensor of shape (batch_size, n_query)
+		| mask: Tensor of shape (batch_size, n_query, n_key)
 		"""
 		# assert tf.shape(K)[-2] == tf.shape(V)[-2], f"K has shape {tf.shape(K)} while V has shape {tf.shape(V)}"
 
@@ -134,8 +131,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 		| Q: Tensor of shape (batch_size, n_query, d_k)
 		| K: Tensor of shape (batch_size, n_key, d_k)
 		| V: Tensor of shape (batch_size, n_key, d_v)
-		| mask: Tensor of shape 
-		| | (n_query, n_key) 
+		| mask: Tensor of shape (batch_size, n_query, n_key)
 		Formula:
 		| attn = softmax(Q.dot(K.T)/sqrt(d_k))V
 		Output:
@@ -287,17 +283,15 @@ class TransformerEncoder(tf.keras.layers.Layer):
 		self._dropout_layer = Dropout(dropout_rate)
 
 	@tf.function
-	def call(self, inputs, training=None):
+	def call(self, inputs, training=None, mask=None):
 		inputs_embed, inputs_positional_encoding = self._positional_embedding_layer(inputs)
 		# Make up for the scaled attention
 		inputs_embed *= tf.math.sqrt(tf.cast(self._d_model, tf.float32))
 		inputs_pos_embed = inputs_embed + inputs_positional_encoding
-		inputs_padding_mask = self._positional_embedding_layer.compute_padding_mask(inputs)
-
 		outputs = self._dropout_layer(inputs_pos_embed, training=training)
 
 		for i in range(self._n_layer):
-			outputs = self._enc_layer_list[i](outputs, training=training, mask=inputs_padding_mask)
+			outputs = self._enc_layer_list[i](outputs, training=training, mask=mask)
 
 		return outputs
 
@@ -347,8 +341,8 @@ class TransformerDecoderLayer(tf.keras.layers.Layer):
 		self._dropout_layer_3 = Dropout(dropout_rate)
 		self._point_wise_feed_forward_network_layer = PointWiseFeedForwardNetwork(d_model, d_ff)
 
-	def call(self, inputs, enc_inputs, training=None, combined_mask=None, padding_mask=None):
-		mh_attn_1 = self._multi_head_attn_layer_1(inputs, inputs, inputs, mask=combined_mask)
+	def call(self, inputs, enc_inputs, training=None, comb_mask=None, padding_mask=None):
+		mh_attn_1 = self._multi_head_attn_layer_1(inputs, inputs, inputs, mask=comb_mask)
 		mh_attn_1 = self._dropout_layer_1(mh_attn_1, training=training)
 		inputs_1 = self._layer_norm_1(mh_attn_1 + inputs)
 
@@ -409,32 +403,28 @@ class TransformerDecoder(tf.keras.layers.Layer):
 		self._dropout_layer = Dropout(dropout_rate)
 
 	@tf.function
-	def call(self, inputs, enc_inputs, training=None):
+	def call(self, inputs, enc_inputs, training=None, comb_mask=None, padding_mask=None):
 		inputs_embed, inputs_positional_encoding = self._positional_embedding_layer(inputs)
 		# Make up for the scaled attention
 		inputs_embed *= tf.math.sqrt(tf.cast(self._d_model, tf.float32))
 		inputs_pos_embed = inputs_embed + inputs_positional_encoding
-		inputs_padding_mask = self._positional_embedding_layer.compute_padding_mask(inputs)
-		inputs_forward_mask = self.get_forward_mask(tf.shape(inputs)[-1],tf.shape(inputs)[-1])
-		inputs_combined_mask = tf.maximum(inputs_padding_mask, inputs_forward_mask)
-
 		outputs = self._dropout_layer(inputs_pos_embed, training=training)
 
 		for i in range(self._n_layer):
-			outputs = self._dec_layer_list[i](outputs, enc_inputs, training=training, combined_mask=inputs_combined_mask, padding_mask=inputs_padding_mask)
+			outputs = self._dec_layer_list[i](outputs, enc_inputs, training=training, comb_mask=comb_mask, padding_mask=padding_mask)
 
 		return outputs
 
-	def get_forward_mask(self, dim_0, dim_1):
-		"""
-		Intution:
-		| Mask future token of current sequences
-		Inplementation:
-		| Use a matrix with only upper triangular part being 1
-		Output:
-		| Tensor of shape (1, dim_0, dim_1)
-		"""
-		return tf.expand_dims(1 - tf.linalg.band_part(tf.ones((dim_0, dim_1)), -1, 0), 0)
+	# def get_forward_mask(self, dim_0, dim_1):
+	# 	"""
+	# 	Intution:
+	# 	| Mask future token of current sequences
+	# 	Inplementation:
+	# 	| Use a matrix with only upper triangular part being 1
+	# 	Output:
+	# 	| Tensor of shape (1, dim_0, dim_1)
+	# 	"""
+	# 	return tf.expand_dims(1 - tf.linalg.band_part(tf.ones((dim_0, dim_1)), -1, 0), 0)
 
 	def get_config(self):
 		"""

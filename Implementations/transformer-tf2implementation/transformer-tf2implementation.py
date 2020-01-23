@@ -27,7 +27,12 @@ class transformer_model(tf.keras.Model):
 	# Examples
 
 	```python
-		# Expected shape for input data and output data
+		# Sample Data
+		## Note that as described in the original paper, the second dimension of inputs and targets should also be the same.
+		inputs = tf.zeros(shape=(100,10))
+		targets = tf.zeros(shape=(100,10))
+
+		# Hyperparameter
 		n_enc_layer = 6
 		n_dec_layer = 6
 		d_model = 512
@@ -47,7 +52,8 @@ class transformer_model(tf.keras.Model):
 					  )
 
 		# Call Model once to build the model
-		_ = model(tf.zeros(shape=(1,40)), tf.zeros(shape=(1,40)))
+		enc_padding_mask, dec_comb_mask, dec_padding_mask = model.get_masks(inputs, targets)
+		_ = model(inputs, targets, enc_padding_mask=enc_padding_mask, dec_comb_mask=dec_comb_mask, dec_padding_mask=dec_padding_mask)
 
 		# Take a look at model
 		model.summary()
@@ -61,10 +67,66 @@ class transformer_model(tf.keras.Model):
 		self._ffnn_layer = Dense(target_vocab_size)
 
 	@tf.function
-	def call(self, inputs, targets, training=None):
-		enc_outputs = self._encoder(inputs)
-		dec_outputs = self._decoder(targets, enc_outputs)
+	def call(self, inputs, targets, training=None, enc_padding_mask=None, dec_comb_mask=None, dec_padding_mask=None):
+		enc_outputs = self._encoder(inputs, mask=enc_padding_mask, training=training)
+		dec_outputs = self._decoder(targets, enc_outputs, comb_mask=dec_comb_mask, padding_mask=dec_padding_mask, training=training)
 		ffnn_outputs = self._ffnn_layer(dec_outputs)
 
 		return tf.nn.softmax(ffnn_outputs)
+
+	def get_padding_mask(self, inputs):
+		"""
+		Mask Zero Padding Mask.
+		"""
+		inputs_mask = tf.cast(tf.math.equal(inputs, 0), tf.float32) # (batch_size, n_step)
+		return inputs_mask
+
+	def get_forward_mask(self, dim_0, dim_1):
+		"""
+		Look ahead mask to maintain autoregression.
+		"""
+		forward_mask = 1 - tf.linalg.band_part(tf.ones((dim_0, dim_1)), -1, 0) # (dim_0, dim_1)
+		return forward_mask
+
+	def get_masks(self, inputs, targets):
+		# Create padding mask for encoder's multi-head attention layer
+		enc_padding_mask = self.get_padding_mask(inputs) # (batch_size, n_step)
+		enc_padding_mask = tf.expand_dims(enc_padding_mask, 1) # (batch_size, 1, n_step/n_key)
+
+		# Create padding mask for decoder's second multi-head attention layer which uses encoder outputs for Query and Key Tensors.
+		dec_padding_mask = self.get_padding_mask(inputs) # (batch_size, n_step)
+		dec_padding_mask = tf.expand_dims(dec_padding_mask, 1) # (batch_size, 1, n_step/n_key)
+
+		# Create mask for decoder's first multi-head attention layer, which uses decoder inputs for Query, Key, and Value Tensors.
+		## Create look ahead mask 
+		dec_comb_forward_mask = self.get_forward_mask(tf.shape(targets)[-1], tf.shape(targets)[-1]) # (n_query, n_key)
+		dec_comb_forward_mask = tf.expand_dims(dec_comb_forward_mask, 0) # (1, n_query, n_key)
+		dec_comb_padding_mask = self.get_padding_mask(targets) # (batch_size, n_step)
+		dec_comb_padding_mask = tf.expand_dims(dec_comb_padding_mask, 1) # (batch_size, 1, n_step/n_key)
+		dec_comb_mask = dec_comb_forward_mask + dec_comb_padding_mask # (batch_size, n_query, n_key)
+
+		return enc_padding_mask, dec_comb_mask, dec_padding_mask
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
