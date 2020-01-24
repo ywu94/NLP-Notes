@@ -3,7 +3,6 @@ from tensorflow.keras.layers import *
 
 assert tf.__version__>="2.0.0", f"Expect TF>=2.0.0 but get {tf.__version__}"
 
-
 class PositionalSinEmbedding(tf.keras.layers.Layer):
 	"""
 	Positional Sinusoidal Embedding layer  as described in "Attention is All You Need".
@@ -47,17 +46,6 @@ class PositionalSinEmbedding(tf.keras.layers.Layer):
 		positional_encoding = tf.where(tf.cast(tf.range(n_embed)%2.0, tf.bool), tf.math.cos(positional_encoding), tf.math.sin(positional_encoding))
 		return positional_encoding
 
-	# def compute_padding_mask(self, inputs, mask=None):
-	# 	"""
-	# 	Compute mask
-	# 	"""
-	# 	if self._mask_zero: 
-	# 		bool_mask = self._embedding_layer.compute_mask(inputs, mask=mask)
-	# 		bool_mask = tf.where(bool_mask, tf.zeros(shape=tf.shape(bool_mask)), tf.ones(shape=tf.shape(bool_mask)))
-	# 		bool_mask = tf.expand_dims(bool_mask, 1)
-	# 		return bool_mask
-	# 	return None
-
 	def get_config(self):
 		"""
 		Get configuration for current layer
@@ -97,9 +85,9 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 		self._d_k = d_model//n_head
 		self._d_v = d_model//n_head
 
-		self._Wq_list = [Dense(self._d_k) for _ in range(self._n_head)]
-		self._Wk_list = [Dense(self._d_k) for _ in range(self._n_head)]
-		self._Wv_list = [Dense(self._d_v) for _ in range(self._n_head)]
+		self._Wq = Dense(d_model)
+		self._Wk = Dense(d_model)
+		self._Wv = Dense(d_model)
 
 		self._concat_layer = Concatenate()
 		self._Wo = Dense(self._d_model)
@@ -115,39 +103,53 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 		"""
 		# assert tf.shape(K)[-2] == tf.shape(V)[-2], f"K has shape {tf.shape(K)} while V has shape {tf.shape(V)}"
 
-		Q_list = [Wq(Q) for Wq in self._Wq_list] # list of (batch_size, n_query, d_k)
-		K_list = [Wk(K) for Wk in self._Wk_list] # list of (batch_size, n_key, d_k)
-		V_list = [Wv(V) for Wv in self._Wv_list] # list of (batch_size, n_key, d_v)
+		batch_size = tf.shape(Q)[0]
 
-		attn_list = [self.get_scaled_dot_product_attention(q, k, v, mask=mask) for q, k, v in zip(Q_list, K_list, V_list)] # list of (batch_size, n_query, d_v)
-		concated_attn = self._concat_layer(attn_list) # (batch_size, n_query, n_head * d_v)
-		multihead_attn = self._Wo(concated_attn) # (batch_size, n_query, d_model)
+		Q = self._Wq(Q) # (batch_size, n_query, d_model)
+		K = self._Wq(K) # (batch_size, n_key, d_model)
+		V = self._Wq(V) # (batch_size, n_key, d_model)
 
-		return multihead_attn
+		Q = self.tensor_split(Q, batch_size) # (batch_size, n_head, n_query, d_k)
+		K = self.tensor_split(K, batch_size) # (batch_size, n_head, n_query, d_k)
+		V = self.tensor_split(V, batch_size) # (batch_size, n_head, n_query, d_k)
+
+		scaled_attention = self.get_scaled_dot_product_attention(Q, K, V, mask=mask) # (batch_size, n_head, n_query, d_k)
+		scaled_attention = tf.transpose(scaled_attention, perm=[0,2,1,3]) # (batch_size, n_qeury, n_head, d_k)
+		scaled_attention = tf.reshape(scaled_attention, shape=[batch_size, -1, self._d_model]) # (batch_size, n_query, d_model)
+
+		multi_head_attn = self._Wo(scaled_attention) # (batch_size, n_query, d_model)
+
+		return multi_head_attn
+
+	def tensor_split(self, tensor, batch_size):
+		tensor = tf.reshape(tensor, shape=(batch_size, -1, self._n_head, self._d_k)) # (batch_size, n_step, n_head, d_k)
+		tensor = tf.transpose(tensor, perm=[0,2,1,3]) # (batch_size, n_head, n_step, d_k)
+		return tensor
 
 	def get_scaled_dot_product_attention(self, Q, K, V, mask=None):
 		"""
 		Input:
-		| Q: Tensor of shape (batch_size, n_query, d_k)
-		| K: Tensor of shape (batch_size, n_key, d_k)
-		| V: Tensor of shape (batch_size, n_key, d_v)
-		| mask: Tensor of shape (batch_size, n_query, n_key)
+		| Q: Tensor of shape (..., n_query, d_k)
+		| K: Tensor of shape (..., n_key, d_k)
+		| V: Tensor of shape (..., n_key, d_v)
+		| mask: Tensor of shape (..., n_query, n_key)
 		Formula:
 		| attn = softmax(Q.dot(K.T)/sqrt(d_k))V
 		Output:
-		| attn_vector: Tensor of shape (batch_size, n_query, d_v)
+		| attn_vector: Tensor of shape (..., n_query, d_v)
 		"""
 		# assert tf.shape(Q)[-1] == tf.shape(K)[-1], f"Q has shape {tf.shape(Q)} while K has shape {tf.shape(K)}"
 		# assert tf.shape(K)[-2] == tf.shape(V)[-2], f"K has shape {tf.shape(K)} while V has shape {tf.shape(V)}"
 
-		QK = tf.matmul(Q, K, transpose_b=True) # (batch_size, n_query, n_key)
-		QK_scale = QK/tf.math.sqrt(tf.cast(tf.shape(Q)[-1], tf.float32)) # (batch_size, n_query, n_key)
+		QK = tf.matmul(Q, K, transpose_b=True) # (..., n_query, n_key)
+		d_k = tf.cast(tf.shape(K)[-1], tf.float32)
+		QK_scale = QK/tf.math.sqrt(d_k) # (..., n_query, n_key)
 
 		if mask is not None:
-			QK_scale += (mask * -1e9) # (batch_size, n_query, n_key)
+			QK_scale += (mask * -1e9) # (..., n_query, n_key)
 
-		attn_weight = tf.nn.softmax(QK_scale, axis=-1) # (batch_size, n_query, n_key)
-		attn_vector = tf.matmul(attn_weight, V) # (batch_size, n_query, d_v)
+		attn_weight = tf.nn.softmax(QK_scale, axis=-1) # (..., n_query, n_key)
+		attn_vector = tf.matmul(attn_weight, V) # (..., n_query, d_v)
 
 		return attn_vector
 
@@ -168,7 +170,7 @@ class PointWiseFeedForwardNetwork(tf.keras.layers.Layer):
 	| | d_model: output dimension
 	| | d_ff: middle dimension
 	"""
-	def __init__(self, d_model=512, d_ff=2048, **kwargs):
+	def __init__(self, d_model, d_ff, **kwargs):
 		super(PointWiseFeedForwardNetwork, self).__init__(**kwargs)
 		self._d_model = d_model
 		self._d_ff = d_ff
@@ -346,7 +348,7 @@ class TransformerDecoderLayer(tf.keras.layers.Layer):
 		mh_attn_1 = self._dropout_layer_1(mh_attn_1, training=training)
 		inputs_1 = self._layer_norm_1(mh_attn_1 + inputs)
 
-		mh_attn_2 = self._multi_head_attn_layer_2(enc_inputs, enc_inputs, inputs_1, mask=padding_mask)
+		mh_attn_2 = self._multi_head_attn_layer_2(inputs_1, enc_inputs, enc_inputs, mask=padding_mask)
 		mh_attn_2 = self._dropout_layer_2(mh_attn_2, training=training)
 		inputs_2 = self._layer_norm_2(mh_attn_2 + inputs_1)
 
@@ -414,17 +416,6 @@ class TransformerDecoder(tf.keras.layers.Layer):
 			outputs = self._dec_layer_list[i](outputs, enc_inputs, training=training, comb_mask=comb_mask, padding_mask=padding_mask)
 
 		return outputs
-
-	# def get_forward_mask(self, dim_0, dim_1):
-	# 	"""
-	# 	Intution:
-	# 	| Mask future token of current sequences
-	# 	Inplementation:
-	# 	| Use a matrix with only upper triangular part being 1
-	# 	Output:
-	# 	| Tensor of shape (1, dim_0, dim_1)
-	# 	"""
-	# 	return tf.expand_dims(1 - tf.linalg.band_part(tf.ones((dim_0, dim_1)), -1, 0), 0)
 
 	def get_config(self):
 		"""
