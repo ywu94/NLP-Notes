@@ -10,7 +10,7 @@
 
 >**Multi-head Self Attention / Transformer**
 >>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Attention-Is-All-You-Need.pdf),&nbsp; [[Illustrative Intro]](http://jalammar.github.io/illustrated-transformer/),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/tree/master/Implementations/transformer-tf2implementation),&nbsp;
-[[Official TF2 Implementation]](https://www.tensorflow.org/tutorials/text/transformer)
+[[TF2 Implementation by Google]](https://www.tensorflow.org/tutorials/text/transformer)
  
 ### Industrial Application
 
@@ -19,6 +19,11 @@
 
 >**BERT: Bidirectional Encoder Representations from Transformers**
 >>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BIndustry%5DBERT-Pre-training-of-Deep%20Bidirectional-Transformers-for-Language-Understanding.pdf)
+
+### Named-Entity Recognition
+
+> **Label Attention Network**
+>> **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DHierarchically-Refined-Label-Attention-Network-for-Sequence-Labeling.pdf),&nbsp;  [[Torch Implementation by Author]](https://github.com/Nealcly/BiLSTM-LAN)
    
 ### Modeling Tricks
 
