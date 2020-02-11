@@ -22,6 +22,9 @@
 
 ### Named-Entity Recognition
 
+> **Bi-LSTM CRF**
+>> **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DNeural-Architectures-for-Named-Entity-Recognition.pdf),&nbsp;  [[TF1.0 Implementation by Scofield]](https://github.com/scofield7419/sequence-labeling-BiLSTM-CRF)
+
 > **Label Attention Network**
 >> **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DHierarchically-Refined-Label-Attention-Network-for-Sequence-Labeling.pdf),&nbsp;  [[Torch Implementation by Author]](https://github.com/Nealcly/BiLSTM-LAN)
    
