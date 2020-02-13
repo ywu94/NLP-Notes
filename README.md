@@ -22,6 +22,9 @@
 
 ### Named-Entity Recognition
 
+> **Conditional Random Field**
+>> **Resources**: [[Introduction Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DAn-Introduction-to-Conditional-Random-Field.pdf)
+
 > **Bi-LSTM CRF**
 >> **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DNeural-Architectures-for-Named-Entity-Recognition.pdf),&nbsp;  [[TF1.0 Implementation by Scofield]](https://github.com/scofield7419/sequence-labeling-BiLSTM-CRF)
 
