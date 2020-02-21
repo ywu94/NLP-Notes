@@ -20,10 +20,10 @@
 >**BERT: Bidirectional Encoder Representations from Transformers**
 >>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BIndustry%5DBERT-Pre-training-of-Deep%20Bidirectional-Transformers-for-Language-Understanding.pdf)
 
-### Named-Entity Recognition
+### Probabilistic Graph 
 
 > **Conditional Random Field**
->> **Resources**: [[Introduction Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DAn-Introduction-to-Conditional-Random-Field.pdf),&nbsp;  [[CRF vs MRF]](https://stats.stackexchange.com/questions/156697/whats-the-difference-between-a-markov-random-field-and-a-conditional-random-fie),&nbsp;  [[Tensorflow CRF]](https://www.tensorflow.org/addons/api_docs/python/tfa/text/crf)
+>> **Resources**: [[Introduction to CRF]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BCRF%5DAn-Introduction-to-Conditional-Random-Field.pdf),&nbsp;  [[CRF vs MRF]](https://stats.stackexchange.com/questions/156697/whats-the-difference-between-a-markov-random-field-and-a-conditional-random-fie),&nbsp;  [[CRF for Multi-label Classification]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BCRF%5DCollective-Multi-Label-Classification.pdf)&nbsp;  [[Tensorflow CRF]](https://www.tensorflow.org/addons/api_docs/python/tfa/text/crf);
 
 > **Bi-LSTM CRF**
 >> **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BNER%5DNeural-Architectures-for-Named-Entity-Recognition.pdf),&nbsp;  [[TF1.0 Implementation by Scofield]](https://github.com/scofield7419/sequence-labeling-BiLSTM-CRF)
