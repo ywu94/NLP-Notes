@@ -15,7 +15,7 @@
 ### Industrial Application
 
 >**Google Neural Machine Translation System**
->>**Concept applied**: `Additive/concat attention`, `Residual connection`, `Vanilla dropout` <br/>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Industry]Google%E2%80%99s-Neural-Machine-Translation-System.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/gnmt-tf2implementation.py)
+>>**Concept applied**: `Additive/concat attention`, `Residual connection`, `Vanilla dropout` <br/>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Industry]Google%E2%80%99s-Neural-Machine-Translation-System.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/gnmt-tf2implementation.py),&nbsp;  [[Torch Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/gnmt-torchimplementation.py)
 
 >**BERT: Bidirectional Encoder Representations from Transformers**
 >>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BIndustry%5DBERT-Pre-training-of-Deep%20Bidirectional-Transformers-for-Language-Understanding.pdf)
