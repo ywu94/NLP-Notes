@@ -33,6 +33,10 @@
    
 ### Modeling Tricks
 
+> **Transformer Training**
+>>**Pre-Layer Normalization Transformer**: [[Paper]](https://arxiv.org/pdf/2002.04745.pdf)<br/>
+>>**Training Tips for Transformer**: [[Paper]](https://ufal.mff.cuni.cz/pbml/110/art-popel-bojar.pdf)
+
 >**Recurrent Neural Network Normalization**
 >>**Resources**: [[Methodology Overview]](https://mlexplained.com/2018/11/30/an-overview-of-normalization-methods-in-deep-learning/),&nbsp; [[Layer Normalization]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/%5BRNN-Training%5DLayer-Normalization.pdf)<br/>**Experience**: use `BatchNormalization` or `LayerNormalization` after each RNN layer
 
