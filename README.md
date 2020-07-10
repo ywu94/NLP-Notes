@@ -3,14 +3,29 @@
 ### Attention
 
 >**Additive/concat Attention**
->>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Neural-Machine-Translation-by-Jointly-Learning-to-Align-and-Translate.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/add-attn-tf2implementation.py)
+> * **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Neural-Machine-Translation-by-Jointly-Learning-to-Align-and-Translate.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/add-attn-tf2implementation.py)
 
 >**Multiplicative Attention**
->>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Effective-Approaches-to-Attention-based-Neural-Machine-Translation.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/mul-attn-tf2implementation.py)
+> * **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Effective-Approaches-to-Attention-based-Neural-Machine-Translation.pdf),&nbsp; [[Illustrative Intro]](https://towardsdatascience.com/attn-illustrated-attention-5ec4ad276ee3),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/blob/master/Implementations/mul-attn-tf2implementation.py)
 
 >**Multi-head Self Attention / Transformer**
->>**Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Attention-Is-All-You-Need.pdf),&nbsp; [[Illustrative Intro]](http://jalammar.github.io/illustrated-transformer/),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/tree/master/Implementations/transformer-tf2implementation),&nbsp;
+> * **Resources**: [[Paper]](https://github.com/ywu94/NLP-Notes/blob/master/Papers/[Attention]Attention-Is-All-You-Need.pdf),&nbsp; [[Illustrative Intro]](http://jalammar.github.io/illustrated-transformer/),&nbsp; [[TF2 Implementation]](https://github.com/ywu94/NLP-Notes/tree/master/Implementations/transformer-tf2implementation),&nbsp;
 [[TF2 Implementation by Google]](https://www.tensorflow.org/tutorials/text/transformer)
+
+### Subword Tokenization
+
+> * **Unigram Language Model (ULM)**
+>    * assume all subword occurence are independent and subword sequence is produced by the product of subword occurrence probabilities
+>    * optimize for whole sentence likelihood probability (Viterbi Algorithm)
+>    * both WP and ULM leverages language model to build subword vocabulary
+> * **Byte Pair Encoding (BPE)**
+>    * start from character level, form a new subword based on the next highest frequency pair until reaching desired vocabulary size or the next highest frequency is 1
+>    * used in GPT-2, RoBERTa, see [Git Issue](https://github.com/huggingface/transformers/issues/1083) for implementation
+> * **WordPiece (WP)**
+>    * similar ro BPE but "choose the new word unit out of all possible ones that increase the likelihood on the training data the most when added to the model"
+>       * define `log P(sentence) = Σ log P(token_i)`<br/>when merge adjacent tokens x and y into z<br/>the change in likelihood is `log P(token_z) - (log P(token_x) + log P(token_y))` 
+>    * used in BERT
+
  
 ### Industrial Application
 
