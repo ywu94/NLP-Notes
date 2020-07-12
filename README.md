@@ -14,6 +14,8 @@
 
 ### Subword Tokenization
 
+> * **Summary**: [HuggingFace Tokenizer Summary](https://huggingface.co/transformers/tokenizer_summary.html)
+> * **Implementation**: [HuggingFace Tokenizer](https://github.com/huggingface/tokenizers), [Google SentencePiece](https://github.com/google/sentencepiece/blob/master/python/README.md)
 > * **Unigram Language Model (ULM)**
 >    * assume all subword occurence are independent and subword sequence is produced by the product of subword occurrence probabilities
 >    * optimize for whole sentence likelihood probability (Viterbi Algorithm)
@@ -21,10 +23,12 @@
 > * **Byte Pair Encoding (BPE)**
 >    * start from character level, form a new subword based on the next highest frequency pair until reaching desired vocabulary size or the next highest frequency is 1
 >    * used in GPT-2, RoBERTa, see [Git Issue](https://github.com/huggingface/transformers/issues/1083) for implementation
+>    * `tokenizers.CharBPETokenizer`: `OpenAIGPTTokenizerFast`, 
+>    * `tokenizers.ByteLevelBPETokenizer`: `GPT2TokenizerFast`, `RobertaTokenizerFast`, `LongformerTokenizerFast`
 > * **WordPiece (WP)**
->    * similar ro BPE but "choose the new word unit out of all possible ones that increase the likelihood on the training data the most when added to the model"
+>    * similar to BPE but "choose the new word unit out of all possible ones that increase the likelihood on the training data the most when added to the model"
 >       * define `log P(sentence) = Σ log P(token_i)`<br/>when merge adjacent tokens x and y into z<br/>the change in likelihood is `log P(token_z) - (log P(token_x) + log P(token_y))` 
->    * used in BERT
+>    *  `tokenizers.BertWordPieceTokenizer`: `BertTokenizerFast`, `DistilBertTokenizerFast`, `ElectraTokenizerFast`, `RetriBertTokenizerFast`, `MobileBertTokenizerFast`
 
  
 ### Industrial Application
